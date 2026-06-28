@@ -1,6 +1,5 @@
-# Build artifacts
+# Build artifacts (binary at repo root only — do NOT ignore cmd/fdetk source)
 /fdetk
-fdetk
 *.exe
 /build/
 /dist/

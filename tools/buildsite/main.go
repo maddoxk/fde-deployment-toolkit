@@ -1,0 +1,157 @@
+// Command buildsite renders the docs site for fde-deployment-toolkit.
+//
+// It converts CASE_STUDY.md to HTML, wraps it and the index in a shared shell,
+// and writes them into the ./site directory alongside the status page that the
+// fdetk `status` command emits. Run from the repo root:
+//
+//	go run ./tools/buildsite
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	ghtml "github.com/yuin/goldmark/renderer/html"
+)
+
+func main() {
+	root := "."
+	if len(os.Args) > 1 {
+		root = os.Args[1]
+	}
+	siteDir := filepath.Join(root, "site")
+	must(os.MkdirAll(siteDir, 0o755))
+
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(parser.WithAutoHeadingID()),
+		goldmark.WithRendererOptions(ghtml.WithUnsafe()),
+	)
+
+	csSrc, err := os.ReadFile(filepath.Join(root, "CASE_STUDY.md"))
+	must(err)
+	var csBuf bytes.Buffer
+	must(md.Convert(csSrc, &csBuf))
+	must(os.WriteFile(filepath.Join(siteDir, "case-study.html"),
+		[]byte(page("Case Study - fdetk", "case-study", `<article class="prose">`+csBuf.String()+`</article>`)), 0o644))
+
+	must(os.WriteFile(filepath.Join(siteDir, "index.html"),
+		[]byte(page("fdetk - FDE Deployment Toolkit", "index", indexBody)), 0o644))
+
+	must(os.WriteFile(filepath.Join(siteDir, ".nojekyll"), []byte(""), 0o644))
+
+	fmt.Println("site built ->", siteDir)
+	for _, f := range []string{"index.html", "case-study.html", ".nojekyll"} {
+		fmt.Println("  ", filepath.Join(siteDir, f))
+	}
+}
+
+func page(title, active, body string) string {
+	nav := func(href, id, label string) string {
+		cls := ""
+		if id == active {
+			cls = ` class="on"`
+		}
+		return fmt.Sprintf(`<a href="%s"%s>%s</a>`, href, cls, label)
+	}
+	return fmt.Sprintf(`<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>%s</title><style>%s</style></head><body>
+<nav class="top"><span class="brand">fdetk</span>
+%s %s %s
+<a href="https://github.com/maddoxk/fde-deployment-toolkit" class="gh">GitHub &#8599;</a></nav>
+<main>%s</main>
+<footer>Built with fde-deployment-toolkit &middot; &copy; 2026 Maddox Krape &middot; MIT</footer>
+</body></html>`, title, css,
+		nav("./index.html", "index", "Overview"),
+		nav("./case-study.html", "case-study", "Case Study"),
+		nav("./status.html", "status", "Live Status"),
+		body)
+}
+
+const css = `:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--fg:#e6edf3;--mut:#8b949e;--ac:#58a6ff;--ok:#3fb950}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,Segoe UI,Roboto,sans-serif}
+nav.top{display:flex;gap:18px;align-items:center;padding:14px 22px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:rgba(13,17,23,.92);backdrop-filter:blur(6px);flex-wrap:wrap}
+nav.top a{color:var(--mut);text-decoration:none;font-size:14px}nav.top a.on{color:var(--fg);font-weight:600}
+nav.top a:hover{color:var(--ac)}.brand{font-weight:800;letter-spacing:.04em;color:var(--ac)}.gh{margin-left:auto}
+main{max-width:860px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:30px;line-height:1.2}h2{font-size:22px;margin-top:36px;border-bottom:1px solid var(--bd);padding-bottom:6px}
+h3{font-size:17px;color:var(--mut)}a{color:var(--ac)}
+code{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;font-size:14px}
+pre{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;overflow:auto}
+pre code{background:none;border:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px}
+th,td{border:1px solid var(--bd);padding:8px 12px;text-align:left}th{background:var(--card)}
+blockquote{border-left:3px solid var(--ac);margin:14px 0;padding:4px 16px;color:var(--mut);background:var(--card);border-radius:0 8px 8px 0}
+footer{border-top:1px solid var(--bd);color:var(--mut);font-size:13px;text-align:center;padding:20px}
+.hero{background:linear-gradient(135deg,rgba(88,166,255,.12),rgba(63,185,80,.08));border:1px solid var(--bd);border-radius:14px;padding:26px 24px;margin-bottom:8px}
+.hero p{color:var(--mut);font-size:17px;max-width:62ch}
+.cta{display:inline-block;margin-top:12px;margin-right:10px;background:var(--ac);color:#0d1117;font-weight:600;padding:9px 16px;border-radius:8px;text-decoration:none}
+.cta.alt{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
+.cards .c{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.cards .c b{display:block;color:var(--ac)}.cards .c span{color:var(--mut);font-size:14px}
+.prose h1{margin-top:0}`
+
+const indexBody = `<div class="hero">
+<h1>fdetk &mdash; one-command deploy, verify &amp; observe</h1>
+<p>A forward-deployed engineer&rsquo;s onboarding toolkit. Scaffold a customer service from parameters,
+deploy it, run health &amp; smoke checks against the running service, and emit a live status page &mdash;
+all from one zero-dependency Go CLI.</p>
+<a class="cta" href="./status.html">View live status page &rarr;</a>
+<a class="cta alt" href="./case-study.html">Read the case study</a>
+</div>
+<div class="cards">
+<div class="c"><b>5 subcommands</b><span>scaffold &middot; deploy &middot; healthcheck &middot; smoke &middot; status</span></div>
+<div class="c"><b>6 automated checks</b><span>3 health probes + 3 end-to-end smoke tests</span></div>
+<div class="c"><b>0 dependencies</b><span>Go standard library for the CLI</span></div>
+<div class="c"><b>Live status page</b><span>Rendered from real check runs, not hand-faked</span></div>
+</div>
+
+<h2>What it does</h2>
+<p>Each subcommand emits an <em>artifact</em> rather than a Slack message, so onboarding becomes
+reproducible and auditable:</p>
+<table>
+<thead><tr><th>Command</th><th>Action</th><th>Output</th></tr></thead>
+<tbody>
+<tr><td><code>scaffold</code></td><td>Render config + k8s manifest from customer params</td><td><code>service.config.json</code>, <code>deploy.yaml</code></td></tr>
+<tr><td><code>deploy</code></td><td>Start (simulate deploying) the sample service locally</td><td>running service + endpoints</td></tr>
+<tr><td><code>healthcheck</code></td><td>Liveness / readiness / metrics probes (gates CI)</td><td>3 check results, non-zero exit on failure</td></tr>
+<tr><td><code>smoke</code></td><td>API echo round-trip, content-type, metrics-advance</td><td>3 check results</td></tr>
+<tr><td><code>status</code></td><td>Run all checks &amp; emit observability page</td><td><code>status.html</code> + <code>status.json</code></td></tr>
+</tbody></table>
+
+<h2>Quick start</h2>
+<pre><code>git clone https://github.com/maddoxk/fde-deployment-toolkit
+cd fde-deployment-toolkit
+go build -o fdetk ./cmd/fdetk
+
+./fdetk scaffold --customer "Northwind Logistics" --tier enterprise --replicas 4
+./fdetk deploy    --customer "Northwind Logistics"
+./fdetk healthcheck --customer "Northwind Logistics"
+./fdetk smoke       --customer "Northwind Logistics"
+./fdetk status      --customer "Northwind Logistics" --out ./site</code></pre>
+
+<h2>The live status page</h2>
+<p>The <a href="./status.html">status page</a> on this site was produced by actually running
+<code>fdetk status</code> against a freshly started sample service for <em>Northwind Logistics</em>
+(production / eu-west-1 / enterprise tier). It shows uptime, request volume, p50/p95/p99 latency,
+error rate, request &amp; latency sparklines, and the full table of 6 check results.</p>
+
+<h2>Case study</h2>
+<p>The <a href="./case-study.html">full case study</a> walks a simulated Northwind Logistics
+engagement: cutting per-region onboarding from <strong>11 days to under 2 hours</strong>,
+hands-on engineer time by <strong>92%</strong>, and eliminating health-related rollbacks across
+8 regions in a quarter.</p>`
+
+func must(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "buildsite error:", err)
+		os.Exit(1)
+	}
+}

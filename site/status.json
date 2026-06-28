@@ -1,0 +1,144 @@
+{
+  "service": {
+    "customer": {
+      "name": "Northwind Logistics",
+      "slug": "northwind-logistics",
+      "environment": "production",
+      "region": "eu-west-1",
+      "tier": "enterprise",
+      "port": 8080,
+      "replicas": 4
+    },
+    "serviceName": "northwind-logistics-sample-svc",
+    "image": "ghcr.io/maddoxk/sample-svc:enterprise",
+    "generatedAt": "2026-06-28T03:59:50.660894695Z",
+    "endpoints": {
+      "health": "/healthz",
+      "ready": "/readyz",
+      "metrics": "/metrics",
+      "api": "/api/v1/echo"
+    }
+  },
+  "generatedAt": "2026-06-28T03:59:50.704371568Z",
+  "overallHealth": "healthy",
+  "checksPassed": 6,
+  "checksTotal": 6,
+  "metrics": {
+    "uptimePct": 100,
+    "requestCount": 48120,
+    "errorCount": 96,
+    "errorRatePct": 0.2,
+    "p50LatencyMs": 12.6,
+    "p95LatencyMs": 20.8,
+    "p99LatencyMs": 21.5,
+    "rps": 0.6,
+    "latencySeries": [
+      5.9,
+      9.2,
+      11.6,
+      14.6,
+      7.6,
+      13.6,
+      7.9,
+      10,
+      12.6,
+      10.5,
+      14.6,
+      12.5,
+      20.4,
+      21.7,
+      20.9,
+      13.2,
+      13.8,
+      19.3,
+      12,
+      8.4,
+      14.4,
+      8,
+      8.4,
+      14.8
+    ],
+    "requestSeries": [
+      610,
+      729,
+      774,
+      934,
+      1213,
+      1502,
+      1942,
+      2506,
+      2679,
+      3148,
+      3346,
+      3360,
+      3446,
+      3364,
+      3219,
+      3105,
+      2815,
+      2507,
+      1876,
+      1622,
+      1215,
+      948,
+      597,
+      663
+    ]
+  },
+  "checks": [
+    {
+      "name": "liveness",
+      "kind": "health",
+      "target": "http://127.0.0.1:41537/healthz",
+      "passed": true,
+      "latencyMs": 1.266,
+      "detail": "HTTP 200 in 1.3ms",
+      "timestamp": "2026-06-28T03:59:50Z"
+    },
+    {
+      "name": "readiness",
+      "kind": "health",
+      "target": "http://127.0.0.1:41537/readyz",
+      "passed": true,
+      "latencyMs": 0.273,
+      "detail": "HTTP 200 in 0.3ms",
+      "timestamp": "2026-06-28T03:59:50Z"
+    },
+    {
+      "name": "metrics-endpoint",
+      "kind": "health",
+      "target": "http://127.0.0.1:41537/metrics",
+      "passed": true,
+      "latencyMs": 0.205,
+      "detail": "HTTP 200 in 0.2ms",
+      "timestamp": "2026-06-28T03:59:50Z"
+    },
+    {
+      "name": "api-echo-roundtrip",
+      "kind": "smoke",
+      "target": "http://127.0.0.1:41537/api/v1/echo",
+      "passed": true,
+      "latencyMs": 0.215,
+      "detail": "echo returned payload verbatim",
+      "timestamp": "2026-06-28T03:59:50Z"
+    },
+    {
+      "name": "json-content-type",
+      "kind": "smoke",
+      "target": "http://127.0.0.1:41537/healthz",
+      "passed": true,
+      "latencyMs": 0.219,
+      "detail": "Content-Type is application/json",
+      "timestamp": "2026-06-28T03:59:50Z"
+    },
+    {
+      "name": "metrics-counter-advances",
+      "kind": "smoke",
+      "target": "http://127.0.0.1:41537/metrics",
+      "passed": true,
+      "latencyMs": 0.447,
+      "detail": "metrics endpoint served 2 sequential reads",
+      "timestamp": "2026-06-28T03:59:50Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+# Build artifacts
+/fdetk
+fdetk
+*.exe
+/build/
+/dist/
+
+# Go
+*.test
+*.out
+/vendor/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

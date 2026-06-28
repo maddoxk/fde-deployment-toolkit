@@ -1,0 +1,41 @@
+name: Deploy Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Build CLI
+        run: go build -o fdetk ./cmd/fdetk
+      - name: Run tests
+        run: go test ./...
+      - name: Generate live status page (real check run)
+        run: ./fdetk status --customer "Northwind Logistics" --tier enterprise --env production --region eu-west-1 --replicas 4 --out ./site
+      - name: Build docs site
+        run: go run ./tools/buildsite .
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

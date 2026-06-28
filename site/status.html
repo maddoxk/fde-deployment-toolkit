@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Northwind Logistics — Live Status | fdetk</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--fg:#e6edf3;--mut:#8b949e;--ok:#3fb950;--warn:#d29922;--down:#f85149;--ac:#58a6ff}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--fg)}
+.wrap{max-width:980px;margin:0 auto;padding:28px 18px}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+h1{font-size:22px;margin:0}.sub{color:var(--mut);font-size:13px}
+.badge{padding:5px 14px;border-radius:999px;font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.badge.ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid var(--ok)}
+.badge.warn{background:rgba(210,153,34,.15);color:var(--warn);border:1px solid var(--warn)}
+.badge.down{background:rgba(248,81,73,.15);color:var(--down);border:1px solid var(--down)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.card .k{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.card .v{font-size:26px;font-weight:700;margin-top:4px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+@media(max-width:680px){.charts{grid-template-columns:1fr}}
+.chart{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.chart h3{margin:0 0 8px;font-size:13px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+svg{width:100%;height:auto;display:block}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-top:8px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--bd);font-size:14px}
+th{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:none}
+.pill{padding:2px 9px;border-radius:6px;font-size:12px;font-weight:600}
+.pill.pass{background:rgba(63,185,80,.15);color:var(--ok)}
+.pill.fail{background:rgba(248,81,73,.15);color:var(--down)}
+.kind{color:var(--mut);font-size:12px}
+.meta{color:var(--mut);font-size:12px;margin-top:24px;border-top:1px solid var(--bd);padding-top:12px}
+a{color:var(--ac)}
+h2{font-size:15px;margin:24px 0 4px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
+</style></head><body><div class="wrap">
+<header>
+<div><h1>Northwind Logistics · northwind-logistics-sample-svc</h1>
+<div class="sub">production · eu-west-1 · tier enterprise · 4 replicas</div></div>
+<span class="badge ok">healthy</span>
+</header>
+<div class="grid">
+<div class="card"><div class="k">Uptime (24h)</div><div class="v">100.00%</div></div>
+<div class="card"><div class="k">Requests (24h)</div><div class="v">48120</div></div>
+<div class="card"><div class="k">Error rate</div><div class="v">0.20%</div></div>
+<div class="card"><div class="k">RPS (avg)</div><div class="v">0.60</div></div>
+<div class="card"><div class="k">p50 latency</div><div class="v">12.6ms</div></div>
+<div class="card"><div class="k">p95 latency</div><div class="v">20.8ms</div></div>
+<div class="card"><div class="k">p99 latency</div><div class="v">21.5ms</div></div>
+<div class="card"><div class="k">Checks</div><div class="v">6/6</div></div>
+</div>
+<div class="charts">
+<div class="chart"><h3>Requests / hour (24h)</h3>
+<svg viewBox="0 0 300 70" preserveAspectRatio="none"><polyline fill="none" stroke="#58a6ff" stroke-width="2" points="0.0,65.7 13.0,63.1 26.1,62.1 39.1,58.7 52.2,52.6 65.2,46.3 78.3,36.7 91.3,24.5 104.3,20.7 117.4,10.5 130.4,6.2 143.5,5.9 156.5,4.0 169.6,5.8 182.6,8.9 195.7,11.4 208.7,17.7 221.7,24.4 234.8,38.2 247.8,43.7 260.9,52.6 273.9,58.4 287.0,66.0 300.0,64.6"/></svg></div>
+<div class="chart"><h3>Latency p50 / hour (ms)</h3>
+<svg viewBox="0 0 300 70" preserveAspectRatio="none"><polyline fill="none" stroke="#3fb950" stroke-width="2" points="0.0,66.0 13.0,53.1 26.1,43.6 39.1,31.9 52.2,59.3 65.2,35.8 78.3,58.2 91.3,49.9 104.3,39.7 117.4,47.9 130.4,31.9 143.5,40.1 156.5,9.1 169.6,4.0 182.6,7.1 195.7,37.4 208.7,35.0 221.7,13.4 234.8,42.1 247.8,56.2 260.9,32.6 273.9,57.8 287.0,56.2 300.0,31.1"/></svg></div>
+</div>
+<h2>Check results</h2>
+<table><thead><tr><th>Check</th><th>Kind</th><th>Target</th><th>Latency</th><th>Result</th></tr></thead><tbody>
+<tr>
+<td>liveness<div class="kind">HTTP 200 in 1.3ms</div></td>
+<td class="kind">health</td>
+<td class="kind">http://127.0.0.1:41537/healthz</td>
+<td>1.3ms</td>
+<td><span class="pill pass">PASS</span></td>
+</tr><tr>
+<td>readiness<div class="kind">HTTP 200 in 0.3ms</div></td>
+<td class="kind">health</td>
+<td class="kind">http://127.0.0.1:41537/readyz</td>
+<td>0.3ms</td>
+<td><span class="pill pass">PASS</span></td>
+</tr><tr>
+<td>metrics-endpoint<div class="kind">HTTP 200 in 0.2ms</div></td>
+<td class="kind">health</td>
+<td class="kind">http://127.0.0.1:41537/metrics</td>
+<td>0.2ms</td>
+<td><span class="pill pass">PASS</span></td>
+</tr><tr>
+<td>api-echo-roundtrip<div class="kind">echo returned payload verbatim</div></td>
+<td class="kind">smoke</td>
+<td class="kind">http://127.0.0.1:41537/api/v1/echo</td>
+<td>0.2ms</td>
+<td><span class="pill pass">PASS</span></td>
+</tr><tr>
+<td>json-content-type<div class="kind">Content-Type is application/json</div></td>
+<td class="kind">smoke</td>
+<td class="kind">http://127.0.0.1:41537/healthz</td>
+<td>0.2ms</td>
+<td><span class="pill pass">PASS</span></td>
+</tr><tr>
+<td>metrics-counter-advances<div class="kind">metrics endpoint served 2 sequential reads</div></td>
+<td class="kind">smoke</td>
+<td class="kind">http://127.0.0.1:41537/metrics</td>
+<td>0.4ms</td>
+<td><span class="pill pass">PASS</span></td>
+</tr>
+</tbody></table>
+<div class="meta">Generated by <a href="https://github.com/maddoxk/fde-deployment-toolkit">fdetk</a> · 2026-06-28 03:59:50 UTC · image ghcr.io/maddoxk/sample-svc:enterprise</div>
+</div></body></html>

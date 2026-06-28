@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Case Study - fdetk</title><style>:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--fg:#e6edf3;--mut:#8b949e;--ac:#58a6ff;--ok:#3fb950}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,Segoe UI,Roboto,sans-serif}
+nav.top{display:flex;gap:18px;align-items:center;padding:14px 22px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:rgba(13,17,23,.92);backdrop-filter:blur(6px);flex-wrap:wrap}
+nav.top a{color:var(--mut);text-decoration:none;font-size:14px}nav.top a.on{color:var(--fg);font-weight:600}
+nav.top a:hover{color:var(--ac)}.brand{font-weight:800;letter-spacing:.04em;color:var(--ac)}.gh{margin-left:auto}
+main{max-width:860px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:30px;line-height:1.2}h2{font-size:22px;margin-top:36px;border-bottom:1px solid var(--bd);padding-bottom:6px}
+h3{font-size:17px;color:var(--mut)}a{color:var(--ac)}
+code{background:var(--card);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;font-size:14px}
+pre{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;overflow:auto}
+pre code{background:none;border:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px}
+th,td{border:1px solid var(--bd);padding:8px 12px;text-align:left}th{background:var(--card)}
+blockquote{border-left:3px solid var(--ac);margin:14px 0;padding:4px 16px;color:var(--mut);background:var(--card);border-radius:0 8px 8px 0}
+footer{border-top:1px solid var(--bd);color:var(--mut);font-size:13px;text-align:center;padding:20px}
+.hero{background:linear-gradient(135deg,rgba(88,166,255,.12),rgba(63,185,80,.08));border:1px solid var(--bd);border-radius:14px;padding:26px 24px;margin-bottom:8px}
+.hero p{color:var(--mut);font-size:17px;max-width:62ch}
+.cta{display:inline-block;margin-top:12px;margin-right:10px;background:var(--ac);color:#0d1117;font-weight:600;padding:9px 16px;border-radius:8px;text-decoration:none}
+.cta.alt{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:18px 0}
+.cards .c{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+.cards .c b{display:block;color:var(--ac)}.cards .c span{color:var(--mut);font-size:14px}
+.prose h1{margin-top:0}</style></head><body>
+<nav class="top"><span class="brand">fdetk</span>
+<a href="./index.html">Overview</a> <a href="./case-study.html" class="on">Case Study</a> <a href="./status.html">Live Status</a>
+<a href="https://github.com/maddoxk/fde-deployment-toolkit" class="gh">GitHub &#8599;</a></nav>
+<main><article class="prose"><h1 id="case-study-cutting-customer-onboarding-from-11-days-to-under-2-hours-at-northwind-logistics">Case Study: Cutting Customer Onboarding from 11 Days to Under 2 Hours at Northwind Logistics</h1>
+<blockquote>
+<p>A simulated but realistic end-to-end forward-deployed engineering engagement, illustrating
+how <code>fde-deployment-toolkit</code> (<code>fdetk</code>) standardizes the deploy → verify → observe loop for a
+new enterprise customer.</p>
+</blockquote>
+<h2 id="customer--vertical">Customer &amp; vertical</h2>
+<p><strong>Northwind Logistics</strong> is a mid-market third-party logistics (3PL) provider operating regional
+distribution centers across the EU. They buy a real-time shipment-tracking API from our platform
+and embed it into their warehouse-management UI. Each new Northwind region is effectively a new
+deployment of our sample tracking service, configured per-region (region code, replica count,
+service tier).</p>
+<ul>
+<li><strong>Vertical:</strong> B2B logistics / supply-chain SaaS</li>
+<li><strong>Integration surface:</strong> a per-region containerized HTTP service (health/readiness/metrics/API)</li>
+<li><strong>Constraint:</strong> Northwind's change-management policy requires every regional rollout to ship with
+a signed-off health report and a live status page their NOC can watch. No status page, no go-live.</li>
+</ul>
+<h2 id="the-problem-before">The problem (before)</h2>
+<p>Northwind's first two regions (<code>eu-west-1</code>, <code>eu-central-1</code>) were onboarded by hand. The forward-deployed
+engineer wrote config by copy-pasting a previous customer's Kubernetes manifest, edited values in a
+text editor, deployed, then verified the service with ad-hoc <code>curl</code> one-liners pasted into a Slack
+thread. Observability was a screenshot of a Grafana panel emailed to Northwind's NOC.</p>
+<p>Measured pain, averaged across the first two regions:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align:right">Before</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wall-clock time per region onboarding</td>
+<td style="text-align:right">11 days</td>
+</tr>
+<tr>
+<td>Engineer-hours of hands-on config + verify</td>
+<td style="text-align:right">9.5 hrs</td>
+</tr>
+<tr>
+<td>Manifest defects caught in review</td>
+<td style="text-align:right">4 per region</td>
+</tr>
+<tr>
+<td>Health verification</td>
+<td style="text-align:right">manual curl, inconsistent</td>
+</tr>
+<tr>
+<td>Status artifact handed to customer</td>
+<td style="text-align:right">static screenshot, stale on arrival</td>
+</tr>
+<tr>
+<td>Rollbacks caused by missed readiness gap</td>
+<td style="text-align:right">2 of 2 regions</td>
+</tr>
+</tbody>
+</table>
+<p>The two root causes: (1) configuration was hand-authored and drifted between regions, and (2) the
+&quot;is it healthy?&quot; question was answered by a human running commands from memory, so the answer was
+neither reproducible nor auditable.</p>
+<h2 id="the-approach">The approach</h2>
+<p>We built <code>fdetk</code> to collapse the whole onboarding loop into five composable subcommands that produce
+<strong>artifacts</strong>, not Slack messages:</p>
+<ol>
+<li><code>scaffold</code> — renders <code>service.config.json</code> + a Kubernetes <code>deploy.yaml</code> from a small set of
+customer parameters (<code>--customer</code>, <code>--region</code>, <code>--tier</code>, <code>--replicas</code>, <code>--port</code>). Liveness and
+readiness probes are wired into the manifest automatically, eliminating the missed-readiness class
+of defect.</li>
+<li><code>deploy</code> — starts the sample service locally so the exact config that will ship can be exercised
+before it touches the cluster.</li>
+<li><code>healthcheck</code> — runs liveness, readiness, and metrics probes against the running service and
+exits non-zero if any fail (so it gates CI).</li>
+<li><code>smoke</code> — runs three end-to-end checks: an API echo round-trip, a JSON content-type assertion, and
+a metrics-counter-advances check.</li>
+<li><code>status</code> — runs all six checks against a freshly started service and emits a self-contained static
+status page (<code>status.html</code>) plus machine-readable <code>status.json</code>. This is the artifact Northwind's
+NOC bookmarks.</li>
+</ol>
+<p>The key design decision: <strong>the status page data is produced by actually running the checks</strong>, never
+hand-edited. The page Northwind sees is a faithful render of a real check run.</p>
+<h2 id="rollout-phases">Rollout phases</h2>
+<p><strong>Phase 0 — Pilot (1 region, <code>eu-west-1</code>).</strong> We re-onboarded the existing <code>eu-west-1</code> region through
+<code>fdetk</code> to validate parity with the hand-built config. The generated manifest matched the
+hand-tuned one on every field except it <em>added</em> the readiness probe the human had forgotten.</p>
+<p><strong>Phase 1 — Templatize tiers.</strong> Northwind runs <code>standard</code> and <code>enterprise</code> tiers. We encoded the
+tier into the image tag and replica defaults so a region's tier is a single flag, not a manifest edit.</p>
+<p><strong>Phase 2 — CI gate.</strong> <code>fdetk healthcheck --json</code> and <code>fdetk smoke --json</code> were wired into the
+deployment pipeline. A non-zero exit blocks promotion, so a region cannot go live with a failing probe.</p>
+<p><strong>Phase 3 — Customer-facing status page.</strong> <code>fdetk status</code> output is published to a static bucket per
+region. Northwind's NOC watches the live page; the <code>status.json</code> feeds their internal alerting.</p>
+<p><strong>Phase 4 — Self-serve.</strong> Northwind's own platform team now runs <code>fdetk scaffold</code> + <code>status</code> for new
+regions and only escalates to us on a red check.</p>
+<h2 id="outcome-after">Outcome (after)</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align:right">Before</th>
+<th style="text-align:right">After</th>
+<th style="text-align:right">Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wall-clock time per region onboarding</td>
+<td style="text-align:right">11 days</td>
+<td style="text-align:right">&lt; 2 hrs</td>
+<td style="text-align:right"><strong>-98%</strong></td>
+</tr>
+<tr>
+<td>Engineer-hours hands-on per region</td>
+<td style="text-align:right">9.5 hrs</td>
+<td style="text-align:right">0.75 hr</td>
+<td style="text-align:right"><strong>-92%</strong></td>
+</tr>
+<tr>
+<td>Manifest defects caught in review</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right"><strong>-100%</strong></td>
+</tr>
+<tr>
+<td>Readiness-probe gaps reaching the cluster</td>
+<td style="text-align:right">2 of 2</td>
+<td style="text-align:right">0 of 6</td>
+<td style="text-align:right">eliminated</td>
+</tr>
+<tr>
+<td>Health checks run per region (auditable)</td>
+<td style="text-align:right">~0 consistent</td>
+<td style="text-align:right">6 automated</td>
+<td style="text-align:right">—</td>
+</tr>
+<tr>
+<td>Rollbacks from health regressions</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">eliminated</td>
+</tr>
+<tr>
+<td>Regions live after 1 quarter</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right"><strong>4x</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Across the next quarter Northwind brought <strong>6 additional regions</strong> live (8 total) with zero
+health-related rollbacks. The standardized status page also cut the NOC's &quot;is region X up?&quot; tickets
+to our on-call to roughly zero, because the answer was already on a page they controlled.</p>
+<h2 id="what-made-it-work">What made it work</h2>
+<ul>
+<li><strong>Artifacts over conversations.</strong> Every step emits a file that can be reviewed, diffed, and archived.</li>
+<li><strong>The same code path produces the customer's status page and the CI gate</strong>, so what the customer
+sees and what blocks a bad deploy can never disagree.</li>
+<li><strong>Zero runtime dependencies</strong> (Go standard library only) meant the toolkit dropped into Northwind's
+air-gapped CI without a supply-chain review.</li>
+</ul>
+<h2 id="honest-limitations">Honest limitations</h2>
+<p>This is a simulated engagement and the sample service is an in-process stand-in for a real customer
+workload; the metrics series on the status page are generated by a seeded model anchored on real
+measured check latencies rather than scraped from production Prometheus. In a live deployment the
+<code>status</code> command's metrics block would be wired to the customer's real metrics backend.</p>
+</article></main>
+<footer>Built with fde-deployment-toolkit &middot; &copy; 2026 Maddox Krape &middot; MIT</footer>
+</body></html>
